@@ -4,6 +4,8 @@ tests/runtime/test_sessions.py — Session Management Tests
 Tests for runtime/sessions.py — identity binding and session continuity
 """
 
+import pytest
+
 
 class TestSessionNormalization:
     """Test _normalize_session_id function."""
@@ -337,3 +339,180 @@ class TestFileSessionStoreGetDefault:
             assert isinstance(result, dict)
             assert result.get("real") == "value"
             assert "fallback" not in result
+
+@pytest.fixture
+def isolated_session_store(tmp_path, monkeypatch):
+    """Seed the unified session store in isolation and restore module state after."""
+    from arifosmcp.runtime import session as sess
+
+    identity, actor_map = dict(sess._SESSION_IDENTITY), dict(sess._ACTOR_SESSION_MAP)
+    continuity, active = dict(sess._SESSION_CONTINUITY_STATE), sess._ACTIVE_SESSION_ID
+    loaded, mtime_ns = sess._STORE_LOADED, sess._STORE_MTIME_NS
+    with sess._STORE_LOCK:
+        sess._SESSION_IDENTITY.clear()
+        sess._ACTOR_SESSION_MAP.clear()
+        sess._SESSION_CONTINUITY_STATE.clear()
+    monkeypatch.setattr(sess, "_SESSION_STORE_PATH", tmp_path / "runtime_sessions.json")
+    monkeypatch.setattr(sess, "_LEGACY_MIGRATED", True)
+    yield sess
+    with sess._STORE_LOCK:
+        sess._SESSION_IDENTITY.clear()
+        sess._SESSION_IDENTITY.update(identity)
+        sess._ACTOR_SESSION_MAP.clear()
+        sess._ACTOR_SESSION_MAP.update(actor_map)
+        sess._SESSION_CONTINUITY_STATE.clear()
+        sess._SESSION_CONTINUITY_STATE.update(continuity)
+        sess._ACTIVE_SESSION_ID = active
+        sess._STORE_LOADED, sess._STORE_MTIME_NS = loaded, mtime_ns
+
+
+def _counting_persist(sess, monkeypatch):
+    """Wrap the module's _persist_store so a test can count whole-store rewrites."""
+    writes = []
+    real_persist = sess._persist_store
+
+    def counting_persist():
+        writes.append(1)
+        real_persist()
+
+    monkeypatch.setattr(sess, "_persist_store", counting_persist)
+    return writes
+
+
+def _seed(sess, session_id: str, seconds_to_expiry: float) -> dict:
+    """Put one session record straight into the in-memory store."""
+    from datetime import UTC, datetime, timedelta
+
+    record = {
+        "session_id": session_id,
+        "actor_id": "write-amp-test",
+        "expires_at": (datetime.now(UTC) + timedelta(seconds=seconds_to_expiry)).isoformat(),
+    }
+    with sess._STORE_LOCK:
+        sess._SESSION_IDENTITY[session_id] = record
+        sess._ACTOR_SESSION_MAP[session_id] = record["actor_id"]
+        sess._SESSION_CONTINUITY_STATE[session_id] = {"state": {"session": session_id}}
+    return record
+
+
+class TestStoreWriteAmplification:
+    """Regression tests for the 2026-11-25 kernel event-loop stall.
+
+    Every session-store write rewrites the whole file under ``_STORE_LOCK``
+    (~15MB in production). Paths that changed nothing, or that changed N
+    records one at a time, turned one MCP call into many whole-store rewrites
+    and starved the kernel's event loop (2310 loop-lag events in 24h).
+    """
+
+    def test_expired_sweep_rewrites_the_store_once(self, isolated_session_store, monkeypatch):
+        """A mass expiry costs ONE whole-store rewrite, not one per expired record."""
+        import json
+
+        sess = isolated_session_store
+        for i in range(40):
+            _seed(sess, f"dead-{i}", seconds_to_expiry=-60)
+        for i in range(5):
+            _seed(sess, f"live-{i}", seconds_to_expiry=3600)
+        writes = _counting_persist(sess, monkeypatch)
+
+        assert sess.list_active_sessions_count() == 5
+
+        assert len(writes) == 1
+        assert sorted(sess._SESSION_IDENTITY) == sorted(f"live-{i}" for i in range(5))
+        assert not any(key.startswith("dead-") for key in sess._ACTOR_SESSION_MAP)
+        assert not any(key.startswith("dead-") for key in sess._SESSION_CONTINUITY_STATE)
+        on_disk = json.loads(sess._SESSION_STORE_PATH.read_text(encoding="utf-8"))
+        assert sorted(on_disk["sessions"]) == sorted(f"live-{i}" for i in range(5))
+
+    def test_clearing_an_unknown_session_writes_nothing(self, isolated_session_store, monkeypatch):
+        """An id that is not anchored changes nothing, so the store is not rewritten."""
+        sess = isolated_session_store
+        _seed(sess, "known-1", seconds_to_expiry=3600)
+        writes = _counting_persist(sess, monkeypatch)
+
+        sess.clear_session_identity("never-anchored")
+        assert writes == []
+
+        sess.clear_session_identity("known-1")
+        assert len(writes) == 1
+        assert "known-1" not in sess._SESSION_IDENTITY
+        assert "known-1" not in sess._ACTOR_SESSION_MAP
+        assert "known-1" not in sess._SESSION_CONTINUITY_STATE
+
+    def test_looking_up_a_missing_session_writes_nothing(self, isolated_session_store, monkeypatch):
+        """Every MCP call resolves its session first; a miss must stay a read."""
+        sess = isolated_session_store
+        writes = _counting_persist(sess, monkeypatch)
+
+        assert sess.get_session_execution_state("missing-sid") is None
+        assert sess._ensure_active_record("missing-sid") is None
+        assert writes == []
+
+
+class _CountingPath:
+    """Minimal Path stand-in that counts whole-store reads and delegates the rest."""
+
+    def __init__(self, real):
+        self._real = real
+        self.reads = 0
+
+    def __getattr__(self, name):
+        return getattr(self._real, name)
+
+    def __fspath__(self):
+        return str(self._real)
+
+    def read_text(self, *args, **kwargs):
+        self.reads += 1
+        return self._real.read_text(*args, **kwargs)
+
+
+class TestOwnWriteReload:
+    """Regression test for the 2026-11-25 kernel event-loop stall (second half).
+
+    ``_persist_store`` never advanced the mtime cache, so the read right after a
+    write re-parsed the whole file (≈0.12s at 15MB) under ``_STORE_LOCK`` — the
+    file this process had just written. Writes by OTHER processes must still
+    force a reload (the P1 2026-10-06 staleness guarantee).
+    """
+
+    def test_own_write_does_not_reread_the_store(self, isolated_session_store, monkeypatch):
+        sess = isolated_session_store
+        proxy = _CountingPath(sess._SESSION_STORE_PATH)
+        monkeypatch.setattr(sess, "_SESSION_STORE_PATH", proxy)
+        _seed(sess, "own-1", seconds_to_expiry=3600)
+        sess._load_store()  # store file absent -> loaded, nothing read
+
+        sess._write_record("own-2", {"session_id": "own-2", "actor_id": "write-amp-test"})
+        assert proxy._real.exists()
+        assert proxy.reads == 0
+
+        sess._load_store()
+        assert proxy.reads == 0
+
+    def test_write_by_another_process_still_forces_a_reread(
+        self, isolated_session_store, monkeypatch
+    ):
+        import json
+        import os
+
+        sess = isolated_session_store
+        proxy = _CountingPath(sess._SESSION_STORE_PATH)
+        monkeypatch.setattr(sess, "_SESSION_STORE_PATH", proxy)
+        _seed(sess, "own-1", seconds_to_expiry=3600)
+        sess._load_store()
+        sess._write_record("own-2", {"session_id": "own-2", "actor_id": "write-amp-test"})
+        assert proxy.reads == 0
+
+        foreign = {"version": 2, "sessions": {"ext-1": {"session_id": "ext-1", "actor_id": "other"}}}
+        proxy._real.write_text(json.dumps(foreign), encoding="utf-8")
+        future_ns = (proxy._real.stat().st_mtime_ns // 1_000_000_000 + 5) * 1_000_000_000
+        os.utime(proxy._real, ns=(future_ns, future_ns))
+
+        sess._load_store()
+
+        assert proxy.reads == 1
+        assert "ext-1" in sess._SESSION_IDENTITY
+        # A stale "own write" fingerprint must never be trusted as current.
+        sess._remember_own_write((future_ns - 1, 1))
+        assert sess._STORE_MTIME_NS == future_ns

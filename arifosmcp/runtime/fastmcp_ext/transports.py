@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import os
 import time
@@ -628,7 +629,9 @@ class _HealthEndpointMiddleware:
                 update_prometheus_metrics,
             )
 
-            update_prometheus_metrics()
+            # P0 loop-stall fix (333-AGI 2026-11-25): refresh off the loop (same
+            # rationale as rest_routes.metrics_endpoint — lock + ledger scan).
+            await asyncio.to_thread(update_prometheus_metrics)
 
             response = Response(
                 generate_latest(),

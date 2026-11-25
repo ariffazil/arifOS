@@ -88,3 +88,35 @@ def test_metrics_endpoint_available():
     response = client.get("/metrics")
     assert response.status_code == 200
     assert "text/plain" in response.headers.get("content-type", "")
+
+
+def test_metrics_refresh_runs_off_the_event_loop(monkeypatch):
+    """The /metrics refresh must not run on the event loop thread.
+
+    It takes the session-store lock and scans the vault ledger. Run on the loop
+    it froze every route on the port (2026-11-25: 2310 loop-lag events in 24h,
+    110 of them above 10s, max 62.8s).
+    """
+    import asyncio
+    import threading
+
+    from arifosmcp.runtime import metrics as metrics_module
+
+    endpoint = next(r.endpoint for r in server_app.routes if getattr(r, "path", None) == "/metrics")
+    seen = {}
+    real_refresh = metrics_module.update_prometheus_metrics
+
+    def spy():
+        seen["refresh_thread"] = threading.get_ident()
+        real_refresh()
+
+    monkeypatch.setattr(metrics_module, "update_prometheus_metrics", spy)
+
+    async def call():
+        seen["loop_thread"] = threading.get_ident()
+        return await endpoint(None)
+
+    response = asyncio.run(call())
+
+    assert response.status_code == 200
+    assert seen["refresh_thread"] != seen["loop_thread"]

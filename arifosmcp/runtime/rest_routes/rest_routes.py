@@ -6598,7 +6598,12 @@ def register_rest_routes(
         )
         from starlette.responses import Response as _Resp
 
-        update_prometheus_metrics()
+        # P0 loop-stall fix (333-AGI 2026-11-25): the refresh takes the session
+        # store lock and scans the vault ledger. Run on the event loop it froze
+        # every route on the port while workers queued on that lock (measured:
+        # 2310 event_loop_lag_exceeded events/24h, 110 above 10s, max 62.8s).
+        # Scheduling only — same work, same numbers, off the loop.
+        await asyncio.to_thread(update_prometheus_metrics)
 
         return _Resp(generate_latest(), media_type=CONTENT_TYPE_LATEST)
 

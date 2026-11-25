@@ -397,7 +397,9 @@ def _persist_store() -> None:
                     ),
                     encoding="utf-8",
                 )
+                written_fingerprint = _stat_fingerprint(tmp_path)
                 tmp_path.replace(_SESSION_STORE_PATH)
+                _remember_own_write(written_fingerprint)
             finally:
                 _flock_unlock(lock_handle)
     except OSError as exc:
@@ -413,6 +415,35 @@ def _persist_store() -> None:
             _persist_store()
             return
         logger.warning("Session store persistence failed at %s: %s", _SESSION_STORE_PATH, exc)
+
+
+def _stat_fingerprint(path: Path) -> tuple[int, int] | None:
+    """(mtime_ns, size) — the pair this module treats as "the same file state"."""
+    try:
+        stat = path.stat()
+    except OSError:
+        return None
+    return (stat.st_mtime_ns, stat.st_size)
+
+
+def _remember_own_write(written_fingerprint: tuple[int, int] | None) -> None:
+    """After this process writes the store, that write needs no reload.
+
+    The file now holds exactly what the in-memory dicts held at write time, so
+    the next read would only re-parse (≈0.12s at 15MB) what this process already
+    knows — under ``_STORE_LOCK``, with every other caller queued behind it.
+    P0 loop-stall fix (333-AGI 2026-11-25).
+
+    The cache advances ONLY when the live file still carries the mtime this
+    process wrote. If another writer replaced the file since, the mtime differs,
+    the cache stays stale and the next read reloads as before — the P1
+    2026-10-06 staleness guarantee for writes by other processes is unchanged.
+    """
+    global _STORE_MTIME_NS
+    if written_fingerprint is None:
+        return
+    if _stat_fingerprint(_SESSION_STORE_PATH) == written_fingerprint:
+        _STORE_MTIME_NS = written_fingerprint[0]
 
 
 def _extract_sessions_map(payload: Any) -> dict[str, Any]:
@@ -1118,11 +1149,17 @@ def get_session_identity(session_id: str) -> dict[str, Any] | None:
 def clear_session_identity(session_id: str) -> None:
     """Remove stored identity for a session (e.g., on revocation)."""
     _load_store()
-    _SESSION_IDENTITY.pop(session_id, None)
-    _ACTOR_SESSION_MAP.pop(session_id, None)
-    _SESSION_CONTINUITY_STATE.pop(session_id, None)
+    # P0 loop-stall fix (333-AGI 2026-11-25): an id that is not anchored changes
+    # nothing, so it must not rewrite the store. Every lookup of a missing or
+    # already-cleared session funnels through here (_ensure_active_record), and
+    # the unconditional persist turned each such read into a whole-store rewrite
+    # under _STORE_LOCK — the dominant lock waiter in the 2026-11-25 py-spy dumps.
     with _STORE_LOCK:
-        _persist_store()
+        had_identity = _SESSION_IDENTITY.pop(session_id, None) is not None
+        had_actor = _ACTOR_SESSION_MAP.pop(session_id, None) is not None
+        had_continuity = _SESSION_CONTINUITY_STATE.pop(session_id, None) is not None
+        if had_identity or had_actor or had_continuity:
+            _persist_store()
 
 
 def mark_session_ed25519_verified(
@@ -1212,8 +1249,17 @@ def list_active_sessions_count() -> int:
     """Return the total number of currently anchored sessions."""
     _load_store()
     expired = [sid for sid, record in _SESSION_IDENTITY.items() if _is_session_expired(record)]
-    for session_id in expired:
-        clear_session_identity(session_id)
+    # P0 loop-stall fix (333-AGI 2026-11-25): one pass, one disk write. Clearing
+    # N expired sessions one-by-one rewrote (and re-parsed) the whole store N
+    # times under _STORE_LOCK. Same end state as before: every expired record
+    # gone from identity, actor map and continuity.
+    if expired:
+        with _STORE_LOCK:
+            for session_id in expired:
+                _SESSION_IDENTITY.pop(session_id, None)
+                _ACTOR_SESSION_MAP.pop(session_id, None)
+                _SESSION_CONTINUITY_STATE.pop(session_id, None)
+            _persist_store()
     return len(_SESSION_IDENTITY)
 
 
