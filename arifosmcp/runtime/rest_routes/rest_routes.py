@@ -6057,6 +6057,27 @@ def register_rest_routes(
                 _sa = dict(_sa)
                 _sa.pop("invariants", None)
                 payload["state_axes"] = _sa
+            # Zen Deploy A (2026-11-27): strip static measurement_contract/measurement_basis prose
+            # from compact /health while preserving verifiable sha256 hash + ?detail=1 pointer.
+            import hashlib as _hl, json as _js
+            _contracts_acc = {}
+            if "measurement_basis" in payload:
+                _contracts_acc["measurement_basis"] = payload.pop("measurement_basis")
+            def _strip_contracts(obj, prefix=""):
+                if isinstance(obj, dict):
+                    out = {}
+                    for _k, _v in obj.items():
+                        if _k == "measurement_contract":
+                            _contracts_acc[f"{prefix}.{_k}" if prefix else _k] = _v
+                        else:
+                            out[_k] = _strip_contracts(_v, f"{prefix}.{_k}" if prefix else _k)
+                    return out
+                return obj
+            payload = _strip_contracts(payload)
+            if _contracts_acc:
+                payload["measurement_contract_hash"] = _hl.sha256(
+                    _js.dumps(_contracts_acc, sort_keys=True, default=str).encode("utf-8")
+                ).hexdigest()[:16]
             payload["payload_mode"] = "compact"
             payload["detail_ref"] = "/health?detail=1"
         else:

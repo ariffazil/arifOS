@@ -13,6 +13,7 @@ from typing import Any
 from starlette.datastructures import MutableHeaders
 from starlette.middleware import Middleware
 from starlette.middleware.cors import CORSMiddleware
+from starlette.middleware.gzip import GZipMiddleware
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 from starlette.responses import JSONResponse
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
@@ -584,6 +585,7 @@ def _build_http_middleware() -> list[Middleware]:
     )
     middleware.append(Middleware(BearerAuthMiddleware, exempt_paths=exempt_paths))
     middleware.append(Middleware(SecurityHeadersMiddleware))
+    middleware.append(Middleware(GZipMiddleware, minimum_size=1024))
 
     return middleware
 
