@@ -717,6 +717,7 @@ def arif_route(
         logger.debug("arif_route mission binding soft-fail: %s", _mission_err)
         mission_payload = None
 
+    organ = _aforge_explicit_organ(organ)
     target_organ = _route_intent_to_organ(intent, organ)
     if target_organ == "arifOS" and mission_payload and mission_payload.get("primary_organ"):
         target_organ = str(mission_payload["primary_organ"])
@@ -928,7 +929,21 @@ def arif_route(
         return _route_ok(routing)
 
     if target_organ.lower() == "a-forge":
-        return _route_ok({**routing, "bridge_status": "a-forge: use A-FORGE MCP directly"})
+        result = _bridge_aforge(organ_tool, session_id, actor_id, session_token)
+        routing["bridge_result"] = result
+        routing["bridge_status"] = "called"
+        release = _aforge_release_of(result)
+        if isinstance(release, dict):
+            routing["aforge_release"] = release
+        blocked = _aforge_block_reason(result)
+        if blocked:
+            return _route_hold(blocked, {"routing": routing})
+        if _routing_hold_required(routing):
+            return _route_hold(
+                "Bridge HOLD: inner subsignal requires hold",
+                {"routing": routing},
+            )
+        return _route_ok(routing)
 
     if target_organ.lower() == "aaa":
         return _route_ok({**routing, "bridge_status": "aaa: cockpit/identity — use AAA:3001"})
@@ -1645,6 +1660,160 @@ def _bridge_ok(
                     "invariants_applied": invariants_applied or [],
                 }
             )
+    return base
+
+
+_AFORGE_EXPLICIT_ORGANS = {"a-forge", "aforge", "forge"}
+_AFORGE_READ_TOOLS = {
+    "forge_health_check": "forge_health_check",
+    "forge_probe": "forge_probe",
+}
+
+
+def _aforge_explicit_organ(organ: str | None) -> str | None:
+    """Map an explicit organ alias onto the literal a-forge. None stays None."""
+    if organ is None:
+        return None
+    key = str(organ).strip().lower().replace("_", "-")
+    if key in _AFORGE_EXPLICIT_ORGANS:
+        return "a-forge"
+    return organ
+
+
+def _aforge_release_of(result: Any) -> dict | None:
+    if not isinstance(result, dict):
+        return None
+    release = result.get("aforge_release")
+    if isinstance(release, dict):
+        return release
+    inner = result.get("result")
+    if isinstance(inner, dict):
+        nested = inner.get("aforge_release")
+        if isinstance(nested, dict):
+            return nested
+    return None
+
+
+def _aforge_block_reason(result: Any) -> str | None:
+    """HOLD the route when the bridge itself held or claimed a seal."""
+    if not isinstance(result, dict):
+        return "a-forge bridge: non-dict result"
+    status = result.get("status")
+    if status in {"HOLD", "SEAL", "SEALED", "VOID"}:
+        meta = result.get("meta") if isinstance(result.get("meta"), dict) else {}
+        reason = meta.get("reason") if isinstance(meta, dict) else None
+        if not reason:
+            reasons = result.get("reasons")
+            if isinstance(reasons, list) and reasons:
+                reason = reasons[0]
+        return str(reason or f"a-forge bridge status {status}")
+    verdicts = result.get("verdicts")
+    if isinstance(verdicts, dict):
+        for key in ("receipt", "action"):
+            node = verdicts.get(key)
+            if isinstance(node, dict) and node.get("state") in {"SEAL", "SEALED", "APPROVED"}:
+                return f"a-forge bridge {key} state {node.get('state')}"
+    return None
+
+
+def _bridge_aforge(
+    tool_name: str | None,
+    session_id: str | None,
+    actor_id: str | None,
+    session_token: str | None,
+) -> dict[str, Any]:
+    """Read-only A-FORGE bridge. Allowlist is equality. Caller args never leave."""
+    wire = _AFORGE_READ_TOOLS.get(tool_name) if isinstance(tool_name, str) else None
+    if wire is None or wire != tool_name:
+        return _hold(
+            "arif_bridge",
+            f"allowlist: {tool_name!r} is not a kernel read tool",
+        )
+    fed_env = build_federation_envelope(
+        actor_id=actor_id,
+        identity_verified=bool(actor_id and session_id),
+        session_id=session_id,
+        session_token=session_token,
+        authority="OBSERVE_ONLY",
+        source_tool="arif_route",
+        target_organ="A-FORGE",
+        target_tool=wire,
+        evidence_layer="L2",
+        reversibility="reversible",
+        constitutional_chain_id=session_id,
+    )
+    session = fed_env.get("session") if isinstance(fed_env, dict) else None
+    built = session.get("authority") if isinstance(session, dict) else None
+    if built != "OBSERVE_ONLY":
+        return _hold("arif_bridge", "authority is not OBSERVE_ONLY")
+    try:
+        from arifosmcp.runtime.aforge_read_bridge import payload_is_empty, read_tool
+
+        read = read_tool(wire)
+    except Exception as exc:
+        return _hold("arif_bridge", f"a-forge read failed: {type(exc).__name__}: {exc}")
+    if not isinstance(read, dict):
+        return _hold("arif_bridge", "a-forge read failed: non-dict")
+    payload = read.get("payload")
+    if payload_is_empty(payload):
+        return _hold("arif_bridge", "empty payload")
+    if isinstance(payload, dict):
+        checked = validate_organ_output("a_forge", payload)
+        output = checked.get("output") if isinstance(checked, dict) else None
+        if isinstance(output, dict):
+            payload = output
+    if payload_is_empty(payload):
+        return _hold("arif_bridge", "empty payload")
+    release = read.get("release") if isinstance(read.get("release"), dict) else {}
+    if not release.get("commit") or not release.get("identity_hash"):
+        return _hold("arif_bridge", "release pin missing")
+    release_out = {
+        "commit": release.get("commit"),
+        "identity_hash": release.get("identity_hash"),
+        "tool_count": release.get("tool_count"),
+        "status": release.get("status"),
+    }
+    inner = {
+        "payload": payload,
+        "aforge_release": release_out,
+        "wire_tool": wire,
+        "echo": {
+            "authority": "OBSERVE_ONLY",
+            "session_id": session_id,
+            "actor_id": actor_id,
+            "target_tool": wire,
+            "source_tool": "arif_route",
+        },
+    }
+    base = _bridge_ok(
+        "A-FORGE",
+        wire,
+        inner,
+        kernel_actor_id=actor_id,
+        kernel_session_id=session_id,
+    )
+    if not isinstance(base, dict):
+        return _hold("arif_bridge", "a-forge bridge returned non-dict")
+    verdicts = base.get("verdicts")
+    if not isinstance(verdicts, dict):
+        verdicts = {}
+        base["verdicts"] = verdicts
+    if not isinstance(verdicts.get("action"), dict):
+        verdicts["action"] = {"state": "NOT_EVALUATED"}
+    elif "state" not in verdicts["action"]:
+        verdicts["action"]["state"] = "NOT_EVALUATED"
+    if not isinstance(verdicts.get("receipt"), dict):
+        verdicts["receipt"] = {"state": "UNSEALED"}
+    elif "state" not in verdicts["receipt"]:
+        verdicts["receipt"]["state"] = "UNSEALED"
+    if not isinstance(verdicts.get("session"), dict):
+        verdicts["session"] = {"state": "OBSERVE_ONLY"}
+    elif "state" not in verdicts["session"]:
+        verdicts["session"]["state"] = "OBSERVE_ONLY"
+    base["aforge_release"] = release_out
+    bridged = base.get("result")
+    if isinstance(bridged, dict):
+        bridged["aforge_release"] = release_out
     return base
 
 
