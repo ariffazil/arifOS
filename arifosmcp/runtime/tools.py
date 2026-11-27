@@ -10287,6 +10287,35 @@ def _is_actor_verified(session_id: str | None, actor_id: str | None) -> bool:
     return False
 
 
+def _vault_content_gate(session_id: str | None, actor_id: str | None) -> tuple[bool, str]:
+    """Identity boundary for VAULT999 CONTENT reads (F2/F6/F11, fixed 2026-11-27).
+
+    A registered session is an identity CLAIM, not proof. Ledger content
+    (rows, chain tip, entry lists) is disclosed ONLY to a cryptographically
+    verified actor. Everything else gets metadata (entry_count, head_hash,
+    depth) and no content, exactly like a sessionless observer.
+
+    Failure class closed (reproduced live 2026-11-27): unsigned
+    arif_init(actor='probe-unverified-fixture', OBSERVE_ONLY) followed by
+    arif_seal(mode='ledger') returned ``content_disclosed: true`` with 10
+    full entries while actor verification was False. The 2026-11-02 gate
+    keyed on "session exists" — existence is forgeable by anyone who can
+    call arif_init. This gate keys on the crypto check itself.
+
+    Returns (allowed, reason); reason is echoed into read results so an
+    auditor can see WHICH condition decided the disclosure.
+    """
+    if not session_id or not _SESSIONS.get(session_id):
+        return False, "no_registered_session"
+    try:
+        if not _is_actor_verified(session_id, actor_id):
+            return False, "actor_not_cryptographically_verified"
+    except Exception:
+        logger.exception("suppressed exception", exc_info=True)
+        return False, "verification_error_fail_closed"
+    return True, "actor_verified"
+
+
 def _add_floor_compat(meta: dict[str, Any]) -> None:
     """Add deprecated 'failed_floors' alias from 'violated_laws' (2026-06-06)."""
     if "violated_laws" in meta and "failed_floors" not in meta:
@@ -22966,10 +22995,22 @@ def _arif_vault_seal(
             "content_disclosed": False,
         }
         _sess_ctx = _SESSIONS.get(session_id) if session_id else None
-        if _sess_ctx is None:
+        # 2026-11-27 (identity boundary): content requires CRYPTOGRAPHIC actor
+        # verification, not mere session registration. A forged session gets
+        # the same metadata-only view as a sessionless observer.
+        _content_ok, _content_reason = _vault_content_gate(session_id, actor_id)
+        _meta_result["actor_verified"] = bool(_content_ok)
+        _meta_result["content_gate"] = _content_reason
+        if not _content_ok:
             _meta_result["note"] = (
                 "Sessionless observer read: metadata only (no content). "
                 "Provide a registered session_id to read ledger entries."
+                if _sess_ctx is None
+                else (
+                    "Session registered but actor NOT cryptographically verified "
+                    f"({_content_reason}): metadata only (no content). Present an "
+                    "ACT token or Ed25519 proof to read ledger entries."
+                )
             )
             return SealOutput(
                 status="OK",
@@ -23050,10 +23091,25 @@ def _arif_vault_seal(
         )
     if mode == "list":
         _ensure_vault_loaded()  # P0-FIX-1
+        # 2026-11-27 (identity boundary): entry content is actor-verified only.
+        _list_ok, _list_reason = _vault_content_gate(session_id, actor_id)
+        _list_result: dict[str, Any] = {
+            "entry_count": len(_VAULT_LEDGER),
+            "content_disclosed": bool(_list_ok),
+            "actor_verified": bool(_list_ok),
+            "content_gate": _list_reason,
+        }
+        if _list_ok:
+            _list_result["entries"] = _VAULT_LEDGER
+        else:
+            _list_result["note"] = (
+                "Ledger content requires a cryptographically verified actor "
+                f"({_list_reason}): metadata only."
+            )
         return _inject_nine_signal(
             SealOutput(
                 status="OK",
-                result={"entries": _VAULT_LEDGER},
+                result=_list_result,
                 ledger_size=len(_VAULT_LEDGER),
                 irreversibility_bond=IrreversibilityBond(
                     level=IrreversibilityLevel.REVERSIBLE, delta_S=0.0
@@ -23067,13 +23123,26 @@ def _arif_vault_seal(
         )
     if mode == "chain":
         _ensure_vault_loaded()  # P0-FIX-1
+        # 2026-11-27 (identity boundary): chain-tip CONTENT is actor-verified
+        # only; depth remains public metadata.
+        _chain_ok, _chain_reason = _vault_content_gate(session_id, actor_id)
+        _chain_result: dict[str, Any] = {
+            "depth": len(_VAULT_LEDGER),
+            "content_disclosed": bool(_chain_ok),
+            "actor_verified": bool(_chain_ok),
+            "content_gate": _chain_reason,
+        }
+        if _chain_ok:
+            _chain_result["tip"] = _VAULT_LEDGER[-1] if _VAULT_LEDGER else None
+        else:
+            _chain_result["note"] = (
+                "Chain-tip content requires a cryptographically verified actor "
+                f"({_chain_reason}): depth metadata only."
+            )
         return _inject_nine_signal(
             SealOutput(
                 status="OK",
-                result={
-                    "tip": _VAULT_LEDGER[-1] if _VAULT_LEDGER else None,
-                    "depth": len(_VAULT_LEDGER),
-                },
+                result=_chain_result,
                 ledger_size=len(_VAULT_LEDGER),
                 irreversibility_bond=IrreversibilityBond(
                     level=IrreversibilityLevel.REVERSIBLE, delta_S=0.0

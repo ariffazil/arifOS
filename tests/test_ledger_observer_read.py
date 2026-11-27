@@ -75,10 +75,35 @@ def test_ledger_sessionless_metadata_only():
     assert "Sessionless observer read" in res["note"]
 
 
-def test_ledger_registered_session_discloses_content():
+def _bind_session(sid: str, actor: str = "audit-probe", verified: bool = True) -> str:
+    """Create a session carrying a canonical authority state."""
+    from arifosmcp.runtime import tools as T
+    from arifosmcp.runtime.authority import bind_authority_state
+    from arifosmcp.runtime.megaTools.tool_01_init_anchor import (
+        build_authority_state_for_actor,
+    )
+
+    T._SESSIONS[sid] = {"actor_id": actor}
+    bind_authority_state(
+        T._SESSIONS[sid],
+        build_authority_state_for_actor(
+            actor,
+            verified=verified,
+            verification_method="act_token",
+            verified_key_id="test-fixture",
+        ),
+    )
+    return sid
+
+
+def test_ledger_registered_unverified_session_gets_metadata_only():
+    """2026-11-27 identity boundary: session EXISTENCE is an identity claim,
+    not cryptographic proof. Reproduced live: unsigned init + mode=ledger
+    returned 10 full entries. A registered-but-unverified session must get
+    the same metadata-only view as a sessionless observer."""
     from arifosmcp.runtime import tools as T
 
-    sid = "test-ledger-observer-sess"
+    sid = "test-ledger-unverified-sess"
     T._SESSIONS[sid] = {"actor_id": "audit-probe"}
     try:
         out = T._arif_vault_seal(mode="ledger", session_id=sid, actor_id="audit-probe")
@@ -86,9 +111,47 @@ def test_ledger_registered_session_discloses_content():
         T._SESSIONS.pop(sid, None)
     assert out["status"] == "OK"
     res = out["result"]
+    assert res["content_disclosed"] is False
+    assert "ledger" not in res, "unverified session must not disclose entries"
+    assert res["actor_verified"] is False
+    assert res["content_gate"] == "actor_not_cryptographically_verified"
+    assert isinstance(res["entry_count"], int)
+    assert "head_hash" in res
+
+
+def test_ledger_verified_session_discloses_content():
+    from arifosmcp.runtime import tools as T
+
+    sid = _bind_session("test-ledger-verified-sess")
+    try:
+        out = T._arif_vault_seal(mode="ledger", session_id=sid, actor_id="audit-probe")
+    finally:
+        T._SESSIONS.pop(sid, None)
+    assert out["status"] == "OK"
+    res = out["result"]
     assert res["content_disclosed"] is True
+    assert res["actor_verified"] is True
     assert "ledger" in res
     assert res["head_hash"] is not None or res["entry_count"] == 0
+
+
+def test_list_and_chain_require_verified_actor():
+    """2026-11-27: mode=list returned the WHOLE ledger and mode=chain returned
+    the tip entry with no content gate at all. Both now require verification."""
+    from arifosmcp.runtime import tools as T
+
+    sid = "test-list-chain-unverified"
+    T._SESSIONS[sid] = {"actor_id": "audit-probe"}
+    try:
+        lst = T._arif_vault_seal(mode="list", session_id=sid, actor_id="audit-probe")
+        chn = T._arif_vault_seal(mode="chain", session_id=sid, actor_id="audit-probe")
+    finally:
+        T._SESSIONS.pop(sid, None)
+    assert lst["result"]["content_disclosed"] is False
+    assert "entries" not in lst["result"]
+    assert chn["result"]["content_disclosed"] is False
+    assert "tip" not in chn["result"]
+    assert "depth" in chn["result"]
 
 
 def test_seal_tool_ledger_bypasses_session_gate():

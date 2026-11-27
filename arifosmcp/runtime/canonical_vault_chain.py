@@ -1482,7 +1482,86 @@ def derive_head(vault_dir: Path | str | None = None) -> dict[str, Any]:
             "historical_entries": total_entries,
         }
 
-    # Cache derived head (overwrite freestyle head — F-004 alignment)
+    # PURE READ (staged 2026-11-27, awaiting 888): derive_head no longer writes.
+    # A read path must never mutate the vault. The cache is written only by
+    # write_head_cache(), which append_receipt calls explicitly.
+    return head
+
+
+def head_state(vault_dir: Path | str | None = None) -> dict[str, Any]:
+    """Read-time head truth — derived from chain bytes, zero side effects.
+
+    Canonical consumers must call this instead of reading seal_chain_head.json.
+    `seq` is NOT an ordering key across epochs (measured 2026-11-27: 330 rows
+    carry 116 distinct seq values, max 9923, tail 49); use `epoch_seq` scoped to
+    `epoch_id`, and treat `line_count` + `tail_hash` as the durable coordinates.
+    """
+    p = paths_for(vault_dir)
+    if not p.chain.exists():
+        return {
+            "status": "no-chain",
+            "line_count": 0,
+            "byte_size": 0,
+            "tail_hash": None,
+            "epoch_id": None,
+            "epoch_seq": None,
+            "seq_semantics": "n/a",
+            "ledger_path": str(p.chain),
+        }
+    lines = parse_chain_lines(p.chain)
+    entries = [pl for pl in lines if not pl.corrupt and pl.entry is not None]
+    last = entries[-1].entry if entries else None
+    epoch_id = (last or {}).get("epoch_id") or (last or {}).get("epoch")
+    epoch_rows = [
+        pl.entry
+        for pl in entries
+        if ((pl.entry or {}).get("epoch_id") or (pl.entry or {}).get("epoch")) == epoch_id
+        and isinstance(entry_sequence(pl.entry), int)
+    ]
+    epoch_seq = max((entry_sequence(e) for e in epoch_rows), default=None)
+    return {
+        "status": "ok",
+        "line_count": len(lines),
+        "entry_count": len(entries),
+        "byte_size": p.chain.stat().st_size,
+        "tail_hash": entry_this_hash(last) if last else None,
+        "tail_receipt_hash": (last or {}).get("receipt_hash"),
+        "tail_seq_raw": entry_sequence(last) if last else None,
+        "epoch_id": epoch_id,
+        "epoch_seq": epoch_seq,
+        "seq_semantics": "epoch-local only; never order across epochs",
+        "corrupt_lines": sum(1 for pl in lines if pl.corrupt),
+        "derived_at": _now_iso(),
+        "source": "chain_bytes",
+        "ledger_path": str(p.chain),
+    }
+
+
+def write_head_cache(vault_dir: Path | str | None = None) -> dict[str, Any]:
+    """Persist the derived head as an OPTIONAL cache. Single writer, explicit.
+
+    Only append paths may call this. Readers must prefer head_state().
+    The cached file is advisory: any verifier that trusts it instead of the
+    chain tail will report a false rollback (measured 2026-11-27: file head
+    47 entries behind the tail).
+    """
+    p = paths_for(vault_dir)
+    # 2026-11-27: the cache must carry CHAIN-TAIL truth, not canonical-scope
+    # truth. derive_head() reports the last F-004 envelope (2026-11-17), which
+    # ignored the 49 newer a2a-JSONL rows. head_state() reads the raw tail.
+    head = derive_head(vault_dir)
+    st = head_state(vault_dir)
+    canonical = {"seq": head.get("seq"), "hash": head.get("hash")}
+    # legacy-compatible keys carry TAIL truth
+    head["seq"] = st.get("tail_seq_raw")
+    head["hash"] = st.get("tail_hash") or head.get("hash")
+    head["receipt_hash"] = st.get("tail_receipt_hash") or head.get("receipt_hash")
+    head["scope"] = "chain_tail"
+    head["line_count"] = st.get("line_count")
+    head["byte_size"] = st.get("byte_size")
+    head["canonical_head"] = canonical
+    head["cached"] = True
+    head["cache_written_at"] = _now_iso()
     try:
         p.vault_dir.mkdir(parents=True, exist_ok=True)
         tmp = p.head.with_suffix(".json.tmp")
@@ -1490,7 +1569,6 @@ def derive_head(vault_dir: Path | str | None = None) -> dict[str, Any]:
         tmp.replace(p.head)
     except OSError:
         pass
-
     return head
 
 
@@ -1748,7 +1826,8 @@ def append_receipt(
 
         if force_sequence is None:
             _write_allocator(p, seq + 1)
-        derive_head(vault_dir)
+        # staged 2026-11-27: explicit single-writer cache refresh (was derive_head)
+        write_head_cache(vault_dir)
 
         return AppendResult(ok=True, receipt=wire)
 
@@ -1806,6 +1885,8 @@ __all__ = [
     "verify_chain",
     "replay_chain",
     "derive_head",
+    "head_state",
+    "write_head_cache",
     "heads_agreement",
     "compute_receipt_hash",
     "paths_for",
