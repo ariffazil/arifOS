@@ -147,8 +147,8 @@ def test_allowlist_never_opens_a_socket(monkeypatch):
 def test_pin_miss_stops_after_health(monkeypatch):
     cases = [
         _health(identity_hash="0" * 64),
-        _health(commit="bc5155bEXTRA"),
-        _health(commit="bc5155b1"),
+        _health(commit="ef8bac3EXTRA"),
+        _health(commit="ef8bac31"),
         _health(identity_hash=FULL.upper()),
     ]
     for body in cases:

@@ -14,8 +14,8 @@ from arifosmcp.runtime.federation_edges import _normalize_identity
 
 HOST = "127.0.0.1"
 PORT = 7072
-ATTESTED_COMMIT_SHORT = "bc5155b"
-ATTESTED_COMMIT_FULL = "bc5155b1f36441d41ae308b82a89c2d66d377049"
+ATTESTED_COMMIT_SHORT = "ef8bac3"
+ATTESTED_COMMIT_FULL = "ef8bac39e9fced8401f9bf91085a1fcbea7d09f3"
 ATTESTED_IDENTITY = "fb3c88911e6c3a53e91863ec0cb1908621d9083ea2fdea0503f84d19a003d5c4"
 
 # Keys are the only accepted caller strings. Values are the wire constants.
