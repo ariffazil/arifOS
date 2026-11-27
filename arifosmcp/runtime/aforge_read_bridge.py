@@ -7,6 +7,7 @@ on GET /health identity_hash or commit raises before any tools/call.
 
 from __future__ import annotations
 
+import base64
 import json
 from http.client import HTTPConnection
 
@@ -17,6 +18,16 @@ PORT = 7072
 ATTESTED_COMMIT_SHORT = "ef8bac3"
 ATTESTED_COMMIT_FULL = "ef8bac39e9fced8401f9bf91085a1fcbea7d09f3"
 ATTESTED_IDENTITY = "fb3c88911e6c3a53e91863ec0cb1908621d9083ea2fdea0503f84d19a003d5c4"
+
+# A-FORGE re-signs this on every release (scripts/sign-release-attestation.mjs).
+# The literal pins above are duplicated truth: correct only until A-FORGE ships
+# again (measured 2026-11-28 — pin born 11-26 17:25, stale by 5 commits in 36h).
+# The signed attestation is the organ's own word, so it is accepted alongside the
+# literal; a verification failure falls back to the literal, never to "accept
+# anything".
+ATTESTATION_PATH = "/var/lib/aforge/release-attestation.json"
+ATTESTATION_PUBKEY_PATH = "/etc/aforge/release-attestation.pub.pem"
+MAX_ATTESTATION = 64 * 1024
 
 # Keys are the only accepted caller strings. Values are the wire constants.
 ALLOWLIST = {
@@ -54,13 +65,60 @@ def _as_count(value: object) -> int | None:
     return value
 
 
+def _signed_release_commit() -> str | None:
+    """release_commit from A-FORGE's ed25519-signed attestation, verified.
+
+    None means "cannot be read or cannot be trusted"; the caller then falls
+    back to the compiled literal. Never raises.
+    """
+    try:
+        with open(ATTESTATION_PATH, "rb") as fh:
+            raw = fh.read(MAX_ATTESTATION + 1)
+        with open(ATTESTATION_PUBKEY_PATH, "rb") as fh:
+            pub_pem = fh.read(MAX_ATTESTATION + 1)
+    except OSError:
+        return None
+    if len(raw) > MAX_ATTESTATION or len(pub_pem) > MAX_ATTESTATION:
+        return None
+    try:
+        from cryptography.hazmat.primitives.serialization import load_pem_public_key
+
+        attestation = json.loads(raw.decode("utf-8"))
+        if not isinstance(attestation, dict):
+            return None
+        signature = base64.b64decode(attestation.get("signature") or "", validate=True)
+        body = {key: value for key, value in attestation.items() if key != "signature"}
+        payload = json.dumps(body, separators=(",", ":")).encode("utf-8")
+        load_pem_public_key(pub_pem).verify(signature, payload)
+    except Exception:
+        return None
+    commit = attestation.get("release_commit")
+    if not isinstance(commit, str):
+        return None
+    commit = commit.strip()
+    return commit if len(commit) >= 7 else None
+
+
+def _allowed_commits() -> tuple[set[str], set[str]]:
+    """(short prefixes, full commits) this bridge will accept."""
+    short = {ATTESTED_COMMIT_SHORT}
+    full = {ATTESTED_COMMIT_FULL}
+    signed = _signed_release_commit()
+    if signed is not None:
+        short.add(signed[:7])
+        if len(signed) >= 40:
+            full.add(signed)
+    return short, full
+
+
 def _commit_matches(raw: object) -> str | None:
     if not isinstance(raw, str):
         return None
     commit = raw.strip()
+    short, full = _allowed_commits()
     if len(commit) == 7:
-        return commit if commit == ATTESTED_COMMIT_SHORT else None
-    if commit == ATTESTED_COMMIT_FULL and commit[:7] == ATTESTED_COMMIT_SHORT:
+        return commit if commit in short else None
+    if commit in full:
         return commit
     return None
 
@@ -73,7 +131,11 @@ def _release_from_health(health: dict) -> dict:
     if commit is None:
         commit = _commit_matches(health.get("deployed_commit"))
     if commit is None:
-        raise AforgeReadHold("commit mismatch")
+        observed = health.get("commit")
+        if not observed:
+            observed = health.get("deployed_commit")
+        short, _full = _allowed_commits()
+        raise AforgeReadHold(f"commit mismatch: observed={observed!r} expected={sorted(short)}")
     tool_count = _as_count(health.get("tool_count"))
     if tool_count is None:
         tool_count = _as_count(health.get("tools_listed"))
@@ -118,7 +180,9 @@ def _headers(method: str) -> dict[str, str]:
     return headers
 
 
-def _roundtrip(conn: HTTPConnection, method: str, path: str, body: dict | None, timeout: float) -> dict:
+def _roundtrip(
+    conn: HTTPConnection, method: str, path: str, body: dict | None, timeout: float
+) -> dict:
     conn.timeout = timeout
     payload = None if body is None else json.dumps(body).encode("utf-8")
     conn.request(method, path, body=payload, headers=_headers(method))

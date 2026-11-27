@@ -2,11 +2,16 @@
 
 from __future__ import annotations
 
+import base64
 import inspect
 import json
 import os
 
 os.environ["ARIFOS_DISABLE_SAFETY_THEATRE"] = "1"
+
+import pytest
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
 import arifosmcp.runtime.aforge_read_bridge as bridge
 
@@ -19,6 +24,38 @@ RELEASE = {
     "tool_count": 99,
     "status": "healthy",
 }
+
+
+@pytest.fixture(autouse=True)
+def _hermetic_attestation(monkeypatch, tmp_path):
+    """Unit tests must not read the live box's attestation."""
+    monkeypatch.setattr(bridge, "ATTESTATION_PATH", str(tmp_path / "missing.json"))
+    monkeypatch.setattr(bridge, "ATTESTATION_PUBKEY_PATH", str(tmp_path / "missing.pem"))
+
+
+def _write_attestation(tmp_path, commit: str, signer, pubkey) -> None:
+    body = {
+        "release_commit": commit,
+        "executable_tree_sha256": "a" * 64,
+        "policy_sha256": "b" * 64,
+        "issued_at": "2026-11-28T00:00:00.000Z",
+        "key_id": "ed25519:aforge-release",
+    }
+    payload = json.dumps(body, separators=(",", ":")).encode()
+    attestation = dict(body)
+    attestation["signature"] = base64.b64encode(signer.sign(payload)).decode()
+    (tmp_path / "attestation.json").write_text(json.dumps(attestation))
+    (tmp_path / "attestation.pub.pem").write_bytes(
+        pubkey.public_bytes(
+            serialization.Encoding.PEM,
+            serialization.PublicFormat.SubjectPublicKeyInfo,
+        )
+    )
+
+
+def _use_attestation(monkeypatch, tmp_path) -> None:
+    monkeypatch.setattr(bridge, "ATTESTATION_PATH", str(tmp_path / "attestation.json"))
+    monkeypatch.setattr(bridge, "ATTESTATION_PUBKEY_PATH", str(tmp_path / "attestation.pub.pem"))
 
 
 class _Resp:
@@ -241,7 +278,11 @@ def test_deployed_commit_fallback(monkeypatch):
     body = {"status": "healthy", "deployed_commit": SHORT, "identity_hash": FULL, "tool_count": 0}
     script = _install(
         monkeypatch,
-        [_Resp(200, json.dumps(body)), _Resp(200, _init()), _Resp(200, _rpc({"status": "healthy"}))],
+        [
+            _Resp(200, json.dumps(body)),
+            _Resp(200, _init()),
+            _Resp(200, _rpc({"status": "healthy"})),
+        ],
     )
     got = bridge.read_tool("forge_health_check")
     assert len(script.calls) == 3
@@ -493,3 +534,25 @@ def test_missing_release_pin_holds(monkeypatch):
     out = kernel._bridge_aforge("forge_health_check", None, None, None)
     assert out["status"] == "HOLD"
     assert "release pin missing" in json.dumps(out)
+
+
+def test_signed_attestation_supersedes_stale_literal(monkeypatch, tmp_path):
+    """A literal that rots must not gate the kernel once A-FORGE has re-signed."""
+    key = Ed25519PrivateKey.generate()
+    _write_attestation(tmp_path, "abc1234def", key, key.public_key())
+    _use_attestation(monkeypatch, tmp_path)
+    assert bridge.ATTESTED_COMMIT_SHORT != "abc1234"
+    release = bridge._release_from_health(json.loads(_health(commit="abc1234")))
+    assert release["commit"] == "abc1234"
+
+
+def test_forged_attestation_falls_back_to_literal(monkeypatch, tmp_path):
+    """The signature must be checked, not merely present."""
+    signer = Ed25519PrivateKey.generate()
+    impostor = Ed25519PrivateKey.generate()
+    _write_attestation(tmp_path, "abc1234def", signer, impostor.public_key())
+    _use_attestation(monkeypatch, tmp_path)
+    with pytest.raises(bridge.AforgeReadHold):
+        bridge._release_from_health(json.loads(_health(commit="abc1234")))
+    ok = bridge._release_from_health(json.loads(_health(commit=bridge.ATTESTED_COMMIT_SHORT)))
+    assert ok["commit"] == bridge.ATTESTED_COMMIT_SHORT
