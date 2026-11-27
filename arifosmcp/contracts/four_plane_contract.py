@@ -153,7 +153,7 @@ class MachineResolvableItem(BaseModel):
     """Typed machine remediation requirement."""
     capability_id: str
     target_ref: str
-    side_effect_class: str = Field(default="READ_ONLY", pattern="^(READ_ONLY|MUTATE)$")
+    side_effect_class: str = Field(default="READ_ONLY", pattern="^(READ_ONLY|MUTATE|WRITE_SAFE)$")
     authority_required: str
     completion_evidence: list[str] = Field(default_factory=list)
     max_attempts: int = Field(default=1, ge=1)
@@ -357,7 +357,8 @@ def evaluate_four_planes(
                 {
                     "capability_id": "arif_init",
                     "target_ref": "capability://arifos/init",
-                    "side_effect_class": "READ_ONLY",
+                    "side_effect_class": "WRITE_SAFE",
+                    "persistence_class": "PERSISTENT_AUDIT_WRITE",
                     "authority_required": "OBSERVE_ONLY",
                     "completion_evidence": ["session_id"],
                     "max_attempts": 3,
@@ -384,7 +385,8 @@ def evaluate_four_planes(
                 {
                     "capability_id": "arif_init",
                     "target_ref": "capability://arifos/init",
-                    "side_effect_class": "READ_ONLY",
+                    "side_effect_class": "WRITE_SAFE",
+                    "persistence_class": "PERSISTENT_AUDIT_WRITE",
                     "authority_required": "OBSERVE_ONLY",
                     "completion_evidence": ["session_id"],
                     "max_attempts": 3,
