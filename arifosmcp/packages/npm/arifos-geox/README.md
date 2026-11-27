@@ -1,3 +1,17 @@
+<!-- RETIRED-LANE:npm -->
+> ## ⛔ DEPRECATED — NEVER PUBLISHED
+>
+> This package was never released to the npm registry and is retired.
+> It depended on `@arifos/mcp`, which is itself deprecated.
+>
+> Canonical MCP endpoint: **https://mcp.arif-fazil.com/mcp**
+>
+> Do not build new integrations against this package.
+>
+> Retirement record: [`RETIREMENT.md`](../RETIREMENT.md)
+
+---
+
 # @arifos/geox
 
 **L2 Domain Package** — TypeScript surface for arifOS GEOX geoscience intelligence.
@@ -238,7 +252,7 @@ AGPL-3.0-only — Same as arifOS kernel.
 
 ## Links
 
-- **arifOS Kernel:** <https://pypi.org/project/arifosmcp/>
+- **arifOS Kernel:** <https://pypi.org/project/arifos/>
 - **@arifos/mcp:** <https://www.npmjs.com/package/@arifos/mcp>
 - **Repository:** <https://github.com/ariffazil/arifos>
 - **MCP Protocol:** <https://modelcontextprotocol.io>

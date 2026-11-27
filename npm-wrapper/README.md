@@ -1,3 +1,18 @@
+<!-- RETIRED-LANE:npm -->
+> ## ⛔ DEPRECATED — NEVER PUBLISHED
+>
+> This **npm** wrapper was never released to the npm registry and is retired.
+> The distribution name `arifos` belongs to the **PyPI** package.
+>
+> - Canonical MCP endpoint: **https://mcp.arif-fazil.com/mcp**
+> - Canonical Python distribution: **[`arifos`](https://pypi.org/project/arifos/)**
+>
+> Do not build new integrations against this npm wrapper.
+>
+> Retirement record: [`arifosmcp/packages/npm/RETIREMENT.md`](../arifosmcp/packages/npm/RETIREMENT.md)
+
+---
+
 # arifOS — Constitutional AI Governance Kernel
 
 > **Constitutional execution gate for AI agents.**

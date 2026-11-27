@@ -1,9 +1,23 @@
+<!-- RETIRED-LANE:npm -->
+> ## ⛔ DEPRECATED
+>
+> This package is **not** the canonical MCP client and does **not** match the live server surface.
+>
+> - Canonical MCP endpoint: **https://mcp.arif-fazil.com/mcp**
+> - Canonical Python distribution: **[`arifos`](https://pypi.org/project/arifos/)** (renamed from `arifosmcp`)
+>
+> Do not build new integrations against this package.
+>
+> Retirement record: [`RETIREMENT.md`](../RETIREMENT.md)
+
+---
+
 # @arifos/mcp
 
 **L2 Skills Adapter** — TypeScript client for the arifOS Constitutional AI Governance System.
 
 > **F4 CLARITY:** This package is a **CABLE**, not the **KERNEL**.
-> Governance authority resides exclusively in the PyPI [`arifosmcp`](https://pypi.org/project/arifosmcp/) package.
+> Governance authority resides exclusively in the PyPI [`arifos`](https://pypi.org/project/arifos/) package (renamed from `arifosmcp`).
 > This npm package only provides TypeScript types and a thin MCP transport client.
 
 ---
@@ -233,9 +247,9 @@ AGPL-3.0-only — Same as arifOS kernel.
 
 ## Links
 
-- **arifOS Kernel:** <https://pypi.org/project/arifosmcp/>
+- **arifOS Kernel:** <https://pypi.org/project/arifos/>
 - **Documentation:** <https://arifos.arif-fazil.com>
-- **Repository:** <https://github.com/ariffazil/arifosmcp>
+- **Repository:** <https://github.com/ariffazil/arifos>
 - **MCP Protocol:** <https://modelcontextprotocol.io>
 
 *Ditempa Bukan Diberi* — Forged, Not Given
