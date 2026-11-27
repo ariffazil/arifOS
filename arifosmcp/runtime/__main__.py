@@ -29,7 +29,11 @@ if TYPE_CHECKING:
 
 
 
-_HUMAN_CLI_FLAGS = {"--version", "-v", "version", "--help", "-h", "help", "doctor", "status"}
+_HUMAN_CLI_FLAGS = {
+    "--version", "-v", "version", "--help", "-h", "help", "doctor", "status",
+    # canonical verbs — thin kernel client (arifosmcp/cli.py)
+    "state", "observe", "judge", "seal", "witness",
+}
 
 
 def _is_interactive_human_cli() -> bool:
@@ -146,6 +150,12 @@ def _handle_human_cli() -> int:
     args = sys.argv[1:]
     info = _get_version_info()
 
+    from arifosmcp.verbs import VERBS as _CLI_VERBS
+    from arifosmcp.verbs import run_verb as _run_verb
+
+    if args and args[0] in _CLI_VERBS:
+        return _run_verb(args[0], args[1:])
+
     if any(a in ("--version", "-v", "version") for a in args):
         print(
             f"arifos {info['version']} ({info['install_mode']}, git {info['git_branch']}@{info['git_sha']})"
@@ -164,6 +174,13 @@ def _handle_human_cli() -> int:
     print("  arifos doctor             Verify package imports & probe live federation organs")
     print("  arifos stdio              Start FastMCP JSON-RPC stdio server explicitly")
     print("  arifos --mode <sse|http>  Start network MCP transport server")
+    print("")
+    print("Canonical verbs (thin client of a running kernel):")
+    print("  arifos state              Kernel identity, version and health")
+    print("  arifos observe  [--k v]   Sense reality           -> arif_observe")
+    print("  arifos judge    [--k v]   Constitutional verdict  -> arif_judge")
+    print("  arifos seal     [--k v]   Append receipt          -> arif_seal")
+    print("  arifos witness            Voucher-chain head      -> arifos://vault/head")
     print(
         "\nNote: When invoked by an MCP client (non-TTY stdin pipe), `arifos` and `arifos-mcp`"
     )

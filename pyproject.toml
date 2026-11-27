@@ -459,7 +459,6 @@ PyPI          = "https://pypi.org/project/arifos/"
 arifos     = "arifosmcp.runtime.__main__:main"
 arifos-mcp = "arifosmcp.runtime.__main__:main"   # transition alias — update to arifos.* after Phase 3
 aaa-mcp    = "arifosmcp.runtime.__main__:main"   # legacy alias
-aclip-cai  = "arifosmcp.intelligence.cli:main"
 
 [tool.setuptools]
 include-package-data = true
