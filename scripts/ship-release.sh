@@ -98,6 +98,29 @@ step "6. registry publish (token checked BEFORE the attempt, not after)"
 [ -f /root/.config/mcp-publisher/token.json ] || fail "no registry token — run: cd $REG_DIR && mcp-publisher login github (authorize in browser), then re-run step 6"
 AGE_H=$(( ($(date +%s) - $(stat -c %Y /root/.config/mcp-publisher/token.json)) / 3600 ))
 [ "$AGE_H" -lt 168 ] || fail "registry token stale (${AGE_H}h) — cd $REG_DIR && mcp-publisher login github, authorize, then re-run step 6"
+
+# FI-003 2026-11-28 — generate the published manifest from the repo manifest.
+# The manifest the registry receives is $REG_DIR/server.json, a hand-kept copy
+# outside version control. Measured 2026-11-13: it carried two version dialects
+# (top-level "2026.11.13.post1" vs packages[0] "1!2026.11.13.post1") so the
+# registry recorded one release twice, 2m43s apart, and it declared
+# `transport: stdio` for a streamable-http server. $REPO/server.json is in git
+# and reviewed, so it is the source of truth: copy it forward, pin both version
+# fields to the version being shipped, and keep the previous copy for rollback.
+[ -f "$REPO/server.json" ] || fail "repo manifest missing: $REPO/server.json"
+python3 "$REPO/scripts/gen_registry_manifest.py" \
+  --repo-manifest "$REPO/server.json" \
+  --version "$VER" \
+  --out "$REG_DIR/server.json" \
+  --backup "$REG_DIR/server.json.prev" \
+  || fail "failed to generate $REG_DIR/server.json from the repo manifest"
+RV="$(python3 -c "import json;print(json.load(open('$REG_DIR/server.json'))['version'])" 2>/dev/null)" \
+  || fail "registry server.json unreadable after generation"
+PV="$(python3 -c "import json;print(json.load(open('$REG_DIR/server.json'))['packages'][0]['version'])" 2>/dev/null)" \
+  || fail "registry server.json has no packages[0].version after generation"
+[ "$RV" = "$VER" ] || fail "generated manifest version '$RV' != pyproject '$VER' — refuse to publish"
+[ "$PV" = "$VER" ] || fail "generated packages[0].version '$PV' != pyproject '$VER' — refuse to publish"
+echo "  registry manifest regenerated from repo, pinned to $VER"
 PUB="$(cd "$REG_DIR" && mcp-publisher publish server.json 2>&1 | tail -3)" || true
 if echo "$PUB" | grep -q "already exists"; then
   echo "  registry: this version already published — done"
