@@ -87,6 +87,27 @@ def mock_storage(monkeypatch):
     async def fake_fetch_l4(mem_id):
         return db.get(mem_id)
 
+    class FakeQdrantClient:
+        def upsert(self, *args, **kwargs):
+            return True
+        def search(self, *args, **kwargs):
+            return []
+        def scroll(self, *args, **kwargs):
+            return ([], None)
+        def delete(self, *args, **kwargs):
+            return True
+        def set_payload(self, *args, **kwargs):
+            return True
+
+    fake_client = FakeQdrantClient()
+    monkeypatch.setattr(memory_store, "_get_qdrant_client", lambda: fake_client)
+    monkeypatch.setattr(memory_store, "_generate_embedding", lambda text: [0.0] * 1024)
+
+    from arifosmcp.memory import vector_memory_qdrant
+    async def fake_vector_store(*args, **kwargs):
+        return {"ok": True, "qdrant_id": "fake-qdrant-id"}
+    monkeypatch.setattr(vector_memory_qdrant, "vector_store", fake_vector_store)
+
     monkeypatch.setattr(memory_store, "_pg_write", fake_pg_write)
     monkeypatch.setattr(memory_store, "_pg_supersede", fake_pg_supersede)
     return db
