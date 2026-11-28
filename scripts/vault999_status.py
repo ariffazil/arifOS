@@ -250,13 +250,52 @@ def main() -> int:
     print("\n🧭 Canonical Spine (F004 — the only authority)")
     spine = Path("/root/.local/share/arifos/vault999/seal_chain.jsonl")
     head = Path("/root/.local/share/arifos/vault999/seal_chain_head.json")
+    spine_ok = False
     if spine.exists():
+        # 2026-11-28 FIX (false-frozen alarm): the head cache is ADVISORY only.
+        # canonical_vault_chain.write_head_cache() itself warns that a verifier
+        # trusting the cache "will report a false rollback". Report chain-tail
+        # truth from the bytes; label the cache honestly.
         print(f"   Path:         {spine}")
-        print(f"   Entries:      {sum(1 for _ in spine.open(errors='replace'))}")
+        tail = None
+        line_count = 0
+        with spine.open(errors="replace") as fh:
+            for line in fh:
+                line = line.strip()
+                if line:
+                    line_count += 1
+                    try:
+                        tail = json.loads(line)
+                    except json.JSONDecodeError:
+                        continue
+        tail_seq = (tail or {}).get("seq", (tail or {}).get("sequence"))
+        tail_hash = (tail or {}).get("this_hash") or (tail or {}).get("chain_entry_hash")
+        print(f"   Chain bytes:  {line_count} entries · tail seq={tail_seq} hash={str(tail_hash)[:24]}…")
+        canon = None
+        try:
+            from arifosmcp.runtime.canonical_vault_chain import verify_chain
+
+            canon = verify_chain(spine.parent, scope="canonical").to_dict()
+        except Exception:
+            canon = None
+        if canon is not None:
+            gaps = len(canon.get("gaps") or [])
+            print(
+                f"   Canonical:    verified={canon.get('chain_verified')} "
+                f"entries={canon.get('entries')} gaps={gaps} head_seq={canon.get('head_seq')}"
+            )
+            spine_ok = bool(canon.get("chain_verified"))
+        else:
+            print("   Canonical:    UNMEASURED (canonical_vault_chain unavailable to this interpreter)")
         if head.exists():
-            h = json.load(head.open())
-            print(f"   Head seq:     {h.get('seq')}  hash={str(h.get('hash'))[:24]}…")
-            print(f"   Declared:     canonical={h.get('canonical_entries')} historical={h.get('historical_entries')}")
+            try:
+                h = json.load(head.open())
+                print(
+                    f"   Head cache:   seq={h.get('seq')} ts={h.get('timestamp')} "
+                    f"— ADVISORY ONLY, not a measurement"
+                )
+            except (json.JSONDecodeError, OSError):
+                print("   Head cache:   UNREADABLE")
     else:
         print("   MISSING — no canonical spine")
 
@@ -268,14 +307,17 @@ def main() -> int:
 
     # Overall verdict
     print("\n" + "═" * 60)
-    healthy = (
-        v1["frozen"] is True
-        and v2["status"] == "HEALTHY"
-        and live["status"] == "HEALTHY"
-        and svc["reachable"] is True
-    )
+    if spine_ok:
+        healthy = v1["frozen"] is True and svc["reachable"] is True
+    else:
+        healthy = (
+            v1["frozen"] is True
+            and v2["status"] == "HEALTHY"
+            and live["status"] == "HEALTHY"
+            and svc["reachable"] is True
+        )
     if healthy:
-        print("  ✅ VAULT999: HEALTHY (v2 active, v1 frozen, service up)")
+        print("  ✅ VAULT999: HEALTHY (canonical spine verified, v1 frozen, service up)")
     else:
         print("  ⚠️  VAULT999: DEGRADED — inspect details above")
     print("═" * 60)
